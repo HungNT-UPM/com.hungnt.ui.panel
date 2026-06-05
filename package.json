@@ -1,0 +1,17 @@
+{
+  "name": "com.hungnt.ui.panel",
+  "version": "1.0.0",
+  "displayName": "com.hungnt.ui.panel",
+  "description": "HungNT UI Panel Manager (HungNT.UI.Panel): layer-based panel spawning, caching, lifecycle.",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.hungnt.ui": "1.0.2",
+    "com.hungnt.core": "1.1.2",
+    "com.hungnt.ui.tween": "2.1.0"
+  },
+  "author": {
+    "name": "HungNT",
+    "url": "https://github.com/HungNT-UPM"
+  },
+  "license": "MIT"
+}

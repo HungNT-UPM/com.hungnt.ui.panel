@@ -1,0 +1,19 @@
+{
+    "name": "HungNT.UI.Panel",
+    "rootNamespace": "HungNT.UI.Panel",
+    "references": [
+        "HungNT.UI",
+        "HungNT.Core",
+        "HungNT.UI.Tween",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

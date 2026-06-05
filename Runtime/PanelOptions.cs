@@ -1,0 +1,39 @@
+namespace HungNT.UI.Panel
+{
+    /// <summary>
+    /// Tham số khởi tạo và hiển thị panel, truyền vào <see cref="UIPanelManager.ShowPanel{T}"/>.
+    /// </summary>
+    /// <remarks>
+    /// Dùng struct để mở rộng về sau: thêm field mới vào đây và khởi tạo default trong constructor
+    /// sẽ không break code cũ đang dùng <c>new PanelOptions(path)</c>.
+    /// </remarks>
+    public struct PanelOptions
+    {
+        /// <summary>
+        /// Đường dẫn Resources tới prefab panel (không có extension).
+        /// Ví dụ: <c>"Panels/HomePanel"</c>.
+        /// </summary>
+        public string Path;
+
+        /// <summary>Layer Canvas mà panel được sinh ra. Mặc định: <see cref="PanelLayerType.Mid"/>.</summary>
+        public PanelLayerType Layer;
+
+        /// <summary>
+        /// Có cache panel sau khi Hide không.
+        /// <c>true</c> → disable GameObject, reuse khi <see cref="UIPanelManager.ShowPanel{T}"/> gọi lại.<br/>
+        /// <c>false</c> → Destroy, spawn mới từ Resources mỗi lần show.
+        /// </summary>
+        public bool CanCache;
+
+        /// <summary>
+        /// Khởi tạo với đường dẫn và các giá trị mặc định: Layer = Mid, CanCache = true.
+        /// </summary>
+        /// <param name="path">Đường dẫn Resources tới prefab (ví dụ: <c>"Panels/HomePanel"</c>).</param>
+        public PanelOptions(string path)
+        {
+            Path = path;
+            Layer = PanelLayerType.Mid;
+            CanCache = true;
+        }
+    }
+}
