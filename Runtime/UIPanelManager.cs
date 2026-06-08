@@ -18,7 +18,11 @@ namespace HungNT.UI.Panel
     /// </code>
     /// Truy cập từ mọi nơi: <c>UIPanelManager.Instance.ShowPanel&lt;T&gt;(options)</c>.
     /// </remarks>
-    public class UIPanelManager : MonoSingleton<UIPanelManager>
+    /// <remarks>
+    /// <b>Per-scene</b> (<see cref="MonoSingletonScene{T}"/>, KHÔNG DontDestroyOnLoad): layer là object
+    /// trong scene, nên manager phải bị huỷ khi unload để mỗi scene tự bind lại layer của mình.
+    /// </remarks>
+    public class UIPanelManager : MonoSingletonScene<UIPanelManager>
     {
         [SerializeField] private RectTransform _lowLayer;
         [SerializeField] private RectTransform _midLayer;
