@@ -1,7 +1,7 @@
 {
   "name": "com.hungnt.ui.panel",
   "version": "1.0.0",
-  "displayName": "com.hungnt.ui.panel",
+  "displayName": "HungNT UI Panel",
   "description": "HungNT UI Panel Manager (HungNT.UI.Panel): layer-based panel spawning, caching, lifecycle.",
   "unity": "2022.3",
   "dependencies": {
