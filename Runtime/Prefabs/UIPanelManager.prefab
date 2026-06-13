@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 2061271042038518093}
   - component: {fileID: 4347746833810922151}
   - component: {fileID: 479319209140142311}
+  - component: {fileID: 728536842647145595}
   m_Layer: 0
-  m_Name: Under
+  m_Name: Layer UnderUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -54,7 +55,7 @@ Canvas:
   m_OverrideSorting: 1
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -77,6 +78,22 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 55
+--- !u!114 &728536842647145595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110346930548857024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f55c26478a724e1c8a04dc0cface7d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rectTransform: {fileID: 0}
+  _canvasGroup: {fileID: 0}
+  _parent: {fileID: 0}
+  _layerType: 0
 --- !u!1 &1993299827203789807
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,8 +105,9 @@ GameObject:
   - component: {fileID: 5208892672672944040}
   - component: {fileID: 7263632093184747194}
   - component: {fileID: 2640630744079621}
+  - component: {fileID: 1579167207275279783}
   m_Layer: 0
-  m_Name: Dynamic
+  m_Name: Layer Dynamic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,11 +149,11 @@ Canvas:
   m_OverrideSorting: 1
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_TargetDisplay: 0
 --- !u!114 &2640630744079621
 MonoBehaviour:
@@ -154,6 +172,22 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 55
+--- !u!114 &1579167207275279783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1993299827203789807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f55c26478a724e1c8a04dc0cface7d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rectTransform: {fileID: 0}
+  _canvasGroup: {fileID: 0}
+  _parent: {fileID: 0}
+  _layerType: 2
 --- !u!1 &2508415498741890968
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,7 +201,7 @@ GameObject:
   - component: {fileID: 6196287656124926784}
   - component: {fileID: 3239943357022841184}
   m_Layer: 0
-  m_Name: CanvasUI
+  m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -236,7 +270,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -304,9 +338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ce424917bc89a3458480f372fde870f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lowLayer: {fileID: 2061271042038518093}
-  _midLayer: {fileID: 1141426812689385030}
-  _topLayer: {fileID: 0}
+  _canvasRoot: {fileID: 2740126967222005074}
 --- !u!1 &5325925954181501022
 GameObject:
   m_ObjectHideFlags: 0
@@ -318,8 +350,9 @@ GameObject:
   - component: {fileID: 4344552404122239517}
   - component: {fileID: 2433792144307806729}
   - component: {fileID: 1270138158731870638}
+  - component: {fileID: 5461455338989760751}
   m_Layer: 0
-  m_Name: Overlay
+  m_Name: Layer OverUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -361,11 +394,11 @@ Canvas:
   m_OverrideSorting: 1
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 3
   m_TargetDisplay: 0
 --- !u!114 &1270138158731870638
 MonoBehaviour:
@@ -384,6 +417,22 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 55
+--- !u!114 &5461455338989760751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5325925954181501022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f55c26478a724e1c8a04dc0cface7d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rectTransform: {fileID: 0}
+  _canvasGroup: {fileID: 0}
+  _parent: {fileID: 0}
+  _layerType: 3
 --- !u!1 &8389090018791149796
 GameObject:
   m_ObjectHideFlags: 0
@@ -395,8 +444,9 @@ GameObject:
   - component: {fileID: 1141426812689385030}
   - component: {fileID: 8019304190208860881}
   - component: {fileID: 8439676592020238070}
+  - component: {fileID: 4240123507785950363}
   m_Layer: 0
-  m_Name: Static
+  m_Name: Layer Static
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -438,11 +488,11 @@ Canvas:
   m_OverrideSorting: 1
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!114 &8439676592020238070
 MonoBehaviour:
@@ -461,3 +511,19 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 55
+--- !u!114 &4240123507785950363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389090018791149796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f55c26478a724e1c8a04dc0cface7d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rectTransform: {fileID: 0}
+  _canvasGroup: {fileID: 0}
+  _parent: {fileID: 0}
+  _layerType: 1

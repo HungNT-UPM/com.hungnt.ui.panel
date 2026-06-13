@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace HungNT.UI.Panel
@@ -7,32 +8,35 @@ namespace HungNT.UI.Panel
     /// <summary>
     /// Quản lý lifecycle của các UI Panel: spawn từ Resources, phân layer, cache, show/hide.
     /// </summary>
-    /// <remarks>
-    /// Gắn component này lên Canvas và assign 3 layer <see cref="RectTransform"/> trong Inspector:
-    /// <code>
-    /// Canvas
-    /// └── UIPanelManager
-    ///     ├── LowLayer   → _lowLayer
-    ///     ├── MidLayer   → _midLayer
-    ///     └── TopLayer   → _topLayer
-    /// </code>
-    /// Truy cập từ mọi nơi: <c>UIPanelManager.Instance.ShowPanel&lt;T&gt;(options)</c>.
-    /// </remarks>
-    /// <remarks>
-    /// <b>Per-scene</b> (<see cref="MonoSingletonScene{T}"/>, KHÔNG DontDestroyOnLoad): layer là object
-    /// trong scene, nên manager phải bị huỷ khi unload để mỗi scene tự bind lại layer của mình.
-    /// </remarks>
     public class UIPanelManager : MonoSingletonScene<UIPanelManager>
     {
-        [SerializeField] private RectTransform _lowLayer;
-        [SerializeField] private RectTransform _midLayer;
-        [SerializeField] private RectTransform _topLayer;
+        [InlineButton(nameof(SetupCanvas), "Setup")]
+        [SerializeField]
+        private Canvas _canvasRoot;
 
-        private Dictionary<Type, UIPanelBase> _panels;
+        [ShowInInspector, ReadOnly, TableList]
+        private Dictionary<LayerType, UILayer> _layers = new();
+
+        [ShowInInspector, ReadOnly, TableList]
+        private Dictionary<Type, UIPanelBase> _panels = new();
 
         protected override void OnAwake()
         {
-            _panels = new Dictionary<Type, UIPanelBase>();
+            foreach (var layer in GetComponentsInChildren<UILayer>(true))
+                _layers[layer.LayerType] = layer;
+        }
+
+        private void SetupCanvas()
+        {
+            if (_canvasRoot == null)
+            {
+                _canvasRoot = GetComponentInChildren<Canvas>();
+            }
+
+            if (_canvasRoot != null && _canvasRoot.worldCamera == null)
+            {
+                _canvasRoot.worldCamera = Camera.main;
+            }
         }
 
         /// <summary>
@@ -58,8 +62,9 @@ namespace HungNT.UI.Panel
                 return (T)existing;
             }
 
+            var layer = GetOrCreateLayer(options.Layer);
             var prefab = Resources.Load<GameObject>(options.Path);
-            var instance = Instantiate(prefab, GetLayer(options.Layer));
+            var instance = Instantiate(prefab, layer.RectTransform);
             var panel = instance.GetComponent<T>();
             panel.Setup(options);
             panel.Show();
@@ -111,11 +116,28 @@ namespace HungNT.UI.Panel
                    && panel.gameObject.activeSelf;
         }
 
-        private RectTransform GetLayer(PanelLayerType layerType) => layerType switch
+        private UILayer GetOrCreateLayer(LayerType layerType)
         {
-            PanelLayerType.Low => _lowLayer,
-            PanelLayerType.Top => _topLayer,
-            _ => _midLayer
-        };
+            if (_layers.TryGetValue(layerType, out var layer) && layer != null)
+                return layer;
+
+            // create layer & set sibling by LayerType
+            var go = new GameObject($"Layer {layerType}", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            go.transform.SetSiblingIndex((int)layerType);
+
+            // set full screen
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = Vector2.zero;
+            rect.anchoredPosition = Vector2.zero;
+
+            layer = go.AddComponent<UILayer>();
+            layer.Init(layerType);
+
+            _layers[layerType] = layer;
+            return layer;
+        }
     }
 }

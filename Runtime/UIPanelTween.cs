@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HungNT.UI.Tween;
-using UnityEngine;
 
 namespace HungNT.UI.Panel
 {
@@ -19,11 +18,11 @@ namespace HungNT.UI.Panel
         /// <summary>
         /// <c>true</c> khi hide tween đang chạy — ngăn gọi lồng nhau.
         /// </summary>
-        public bool IsHideTweening { get; private set; }
+        public bool IsShowingTween { get; private set; }
 
         protected virtual void OnEnable()
         {
-            IsHideTweening = false;
+            IsShowingTween = false;
         }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace HungNT.UI.Panel
 
         private async UniTaskVoid HideTweenAsync(CancellationToken token)
         {
-            if (IsHideTweening)
+            if (IsShowingTween)
                 return;
 
             if (!gameObject.activeInHierarchy)
@@ -47,7 +46,7 @@ namespace HungNT.UI.Panel
                 return;
             }
 
-            IsHideTweening = true;
+            IsShowingTween = true;
 
             try
             {
@@ -56,7 +55,7 @@ namespace HungNT.UI.Panel
             }
             finally
             {
-                IsHideTweening = false;
+                IsShowingTween = false;
             }
         }
 

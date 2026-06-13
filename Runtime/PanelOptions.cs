@@ -15,8 +15,8 @@ namespace HungNT.UI.Panel
         /// </summary>
         public string Path;
 
-        /// <summary>Layer Canvas mà panel được sinh ra. Mặc định: <see cref="PanelLayerType.Mid"/>.</summary>
-        public PanelLayerType Layer;
+        /// <summary>Layer Canvas mà panel được sinh ra. Mặc định: <see cref="LayerType.Dynamic"/>.</summary>
+        public LayerType Layer;
 
         /// <summary>
         /// Có cache panel sau khi Hide không.
@@ -32,7 +32,7 @@ namespace HungNT.UI.Panel
         public PanelOptions(string path)
         {
             Path = path;
-            Layer = PanelLayerType.Mid;
+            Layer = LayerType.Dynamic;
             CanCache = true;
         }
     }
