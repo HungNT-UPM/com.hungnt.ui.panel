@@ -1,32 +1,38 @@
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HungNT.UI.Tween;
+using UnityEngine;
 
 namespace HungNT.UI.Panel
 {
     /// <summary>
-    /// Panel có hide animation: điều phối hide tween trên các <see cref="UITweenBase"/> con
-    /// trước khi deactivate/destroy. Kế thừa <see cref="UIPanelBase"/> — dùng với <see cref="UIPanelManager"/>.
+    /// Panel có hide animation: ủy thác hide tween của các <see cref="UITweenBase"/> con
+    /// cho <see cref="Tween.TweenGroup"/> trước khi disable/destroy. Kế thừa <see cref="UIPanelBase"/>.
     /// </summary>
     /// <remarks>
-    /// Show animation: các <see cref="UITweenBase"/> con tự play qua <c>OnEnable</c> khi panel SetActive(true).
-    /// Hide animation: override <see cref="UIPanelBase.Hide"/> — chạy hide tween rồi gọi <c>HideComplete()</c>.
+    /// Show: các <see cref="UITweenBase"/> con tự play qua <c>OnEnable</c> khi SetActive(true).
+    /// Hide: override <see cref="UIPanelBase.Hide"/>, chờ tween xong rồi <c>HideComplete()</c>.
     /// </remarks>
+    [RequireComponent(typeof(TweenGroup))]
     public class UIPanelTween : UIPanelBase
     {
         /// <summary>
+        /// <see cref="Tween.TweenGroup"/> điều phối hide tween con (lazy, tự lấy nếu thiếu).
+        /// </summary>
+        private TweenGroup _tweenGroup;
+
+        /// <summary>
         /// <c>true</c> khi hide tween đang chạy — ngăn gọi lồng nhau.
         /// </summary>
-        public bool IsShowingTween { get; private set; }
+        public bool IsHiding => _tweenGroup.IsHiding;
 
-        protected virtual void OnEnable()
+        protected virtual void Awake()
         {
-            IsShowingTween = false;
+            _tweenGroup = GetComponent<TweenGroup>();
         }
 
         /// <summary>
-        /// Override: chạy hide tween trên các <see cref="UITweenBase"/> con,
+        /// Override: ủy thác hide tween cho <see cref="Tween.TweenGroup"/>,
         /// sau đó gọi <see cref="UIPanelBase.HideComplete"/>.
         /// </summary>
         public override void Hide()
@@ -37,7 +43,7 @@ namespace HungNT.UI.Panel
 
         private async UniTaskVoid HideTweenAsync(CancellationToken token)
         {
-            if (IsShowingTween)
+            if (IsHiding)
                 return;
 
             if (!gameObject.activeInHierarchy)
@@ -46,51 +52,8 @@ namespace HungNT.UI.Panel
                 return;
             }
 
-            IsShowingTween = true;
-
-            try
-            {
-                await HideChildTweensAsync(token);
-                HideComplete();
-            }
-            finally
-            {
-                IsShowingTween = false;
-            }
-        }
-
-        private async UniTask HideChildTweensAsync(CancellationToken token)
-        {
-            IReadOnlyList<UITweenBase> tweens = CollectActiveTweens();
-            if (tweens.Count == 0)
-                return;
-
-            var hideTasks = new List<UniTask>();
-
-            for (int i = 0; i < tweens.Count; i++)
-            {
-                UITweenBase tween = tweens[i];
-                if (tween != null && tween.HasHideTween)
-                    hideTasks.Add(tween.Hide(token));
-            }
-
-            if (hideTasks.Count > 0)
-                await UniTask.WhenAll(hideTasks);
-        }
-
-        private IReadOnlyList<UITweenBase> CollectActiveTweens()
-        {
-            UITweenBase[] tweens = GetComponentsInChildren<UITweenBase>(includeInactive: false);
-            var activeTweens = new List<UITweenBase>(tweens.Length);
-
-            for (int i = 0; i < tweens.Length; i++)
-            {
-                UITweenBase tween = tweens[i];
-                if (tween != null && tween.gameObject.activeInHierarchy && tween.enabled)
-                    activeTweens.Add(tween);
-            }
-
-            return activeTweens;
+            await _tweenGroup.PlayHideAsync(token);
+            HideComplete();
         }
     }
 }

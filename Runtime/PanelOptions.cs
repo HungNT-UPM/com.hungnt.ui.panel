@@ -3,10 +3,6 @@ namespace HungNT.UI.Panel
     /// <summary>
     /// Tham số khởi tạo và hiển thị panel, truyền vào <see cref="UIPanelManager.ShowPanel{T}"/>.
     /// </summary>
-    /// <remarks>
-    /// Dùng struct để mở rộng về sau: thêm field mới vào đây và khởi tạo default trong constructor
-    /// sẽ không break code cũ đang dùng <c>new PanelOptions(path)</c>.
-    /// </remarks>
     public struct PanelOptions
     {
         /// <summary>
@@ -26,7 +22,7 @@ namespace HungNT.UI.Panel
         public bool CanCache;
 
         /// <summary>
-        /// Khởi tạo với đường dẫn và các giá trị mặc định: Layer = Mid, CanCache = true.
+        /// Khởi tạo với đường dẫn và giá trị mặc định: Layer = Dynamic, CanCache = true.
         /// </summary>
         /// <param name="path">Đường dẫn Resources tới prefab (ví dụ: <c>"Panels/HomePanel"</c>).</param>
         public PanelOptions(string path)

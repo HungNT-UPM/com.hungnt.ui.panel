@@ -2,6 +2,25 @@
 
 Hệ thống quản lý UI Panel: spawn từ Resources, phân layer theo `UILayer`, cache, show/hide lifecycle.
 
+Namespace: **`HungNT.UI.Panel`**.
+
+---
+
+## Cài đặt
+
+`Packages/manifest.json`:
+
+```json
+"com.hungnt.ui.panel": "https://github.com/HungNT-UPM/com.hungnt.ui.panel.git#1.2.0"
+```
+
+### Yêu cầu
+- Unity 2022.3+
+- [`com.hungnt.core`](https://github.com/HungNT-UPM/com.hungnt.core) ≥ 1.1.2 — `MonoSingletonScene`
+- [`com.hungnt.ui`](https://github.com/HungNT-UPM/com.hungnt.ui) ≥ 1.0.2
+- [`com.hungnt.ui.tween`](https://github.com/HungNT-UPM/com.hungnt.ui.tween) ≥ 2.3.0 — chỉ cần cho `UIPanelTween`
+- Odin Inspector
+
 ---
 
 ## Setup
@@ -162,12 +181,13 @@ CloseButton (GameObject)
 
 ## Integration với UIPanelTween (com.hungnt.ui.tween)
 
-Thêm package `com.hungnt.ui.tween`, dùng `UIPanelTween` thay `UIPanelBase` để có hide animation:
+Dùng `UIPanelTween` thay `UIPanelBase` để có hide animation. `UIPanelTween` ủy thác việc chạy hide tween cho `TweenGroup` (component được tự thêm qua `[RequireComponent]`):
 
 ```csharp
-// Gắn UIPanelTween lên prefab thay vì UIPanelBase.
+// Gắn UIPanelTween lên prefab thay vì UIPanelBase — TweenGroup tự được add kèm.
 // Thêm UITweenFade / UITweenScale / ... lên các child GameObject.
-// Khi HidePanel được gọi → child tweens play animation → panel disable/destroy.
+// HidePanel → TweenGroup.PlayHideAsync chờ child tweens xong → panel disable/destroy.
 ```
 
-Show animation: `UITweenBase` con tự play qua `OnEnable` khi panel được SetActive(true).
+- **Show**: `UITweenBase` con tự play qua `OnEnable` khi panel được SetActive(true).
+- **Hide**: `Hide()` override để chờ `TweenGroup` hide xong rồi mới `HideComplete()`. `IsHiding` = `true` trong lúc tween chạy.

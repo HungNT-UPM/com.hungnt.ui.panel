@@ -1,15 +1,10 @@
 namespace HungNT.UI.Panel
 {
     /// <summary>
-    /// Base class cho mọi UI Panel (Home, InGame, Gameover, v.v.).
-    /// Kế thừa <see cref="UIViewBase"/> — có sẵn RectTransform, CanvasGroup, Interactable.
+    /// Base class cho mọi UI Panel. Kế thừa <see cref="UIViewBase"/>.
+    /// Hide lifecycle: <c>Hide()</c> → <c>OnHide()</c> → <c>HideComplete()</c> (disable hoặc destroy);
+    /// subclass có animation override <c>Hide()</c> để delay <c>HideComplete()</c>.
     /// </summary>
-    /// <para>
-    /// Hide lifecycle:
-    /// <c>Hide()</c> → <c>OnHide()</c> → <c>HideComplete()</c> (disable hoặc destroy).<br/>
-    /// Subclass có animation có thể override <c>Hide()</c> để delay <c>HideComplete()</c>
-    /// cho đến khi animation xong.
-    /// </para>
     public class UIPanelBase : UIViewBase
     {
         private bool _canCache;

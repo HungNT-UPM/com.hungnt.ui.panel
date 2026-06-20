@@ -4,13 +4,10 @@ using UnityEngine.UI;
 namespace HungNT.UI.Panel
 {
     /// <summary>
-    /// Nút đóng panel: tự tìm <see cref="UIPanelBase"/> cha gần nhất trong Awake,
+    /// Nút đóng panel: tìm <see cref="UIPanelBase"/> cha gần nhất trong Awake,
     /// gọi <see cref="UIPanelManager.HidePanel(UIPanelBase)"/> khi click.
+    /// Gắn lên Button là dùng được, không cần serialized field.
     /// </summary>
-    /// <remarks>
-    /// Không cần khai báo serialized field — gắn component này lên Button là dùng được.
-    /// Hoạt động với mọi subclass của <see cref="UIPanelBase"/> (kể cả UIPanelTween).
-    /// </remarks>
     [RequireComponent(typeof(Button))]
     public class UIButtonClosePanel : MonoBehaviour
     {
