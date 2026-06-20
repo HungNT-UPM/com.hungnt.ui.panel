@@ -181,10 +181,10 @@ CloseButton (GameObject)
 
 ## Integration với UIPanelTween (com.hungnt.ui.tween)
 
-Dùng `UIPanelTween` thay `UIPanelBase` để có hide animation. `UIPanelTween` ủy thác việc chạy hide tween cho `TweenGroup` (component được tự thêm qua `[RequireComponent]`):
+Dùng `UIPanelTween` thay `UIPanelBase` để có hide animation. `UIPanelTween` ủy thác việc chạy hide tween cho `TweenGroup` (tự lazy get/add khi cần — không phải gắn sẵn):
 
 ```csharp
-// Gắn UIPanelTween lên prefab thay vì UIPanelBase — TweenGroup tự được add kèm.
+// Gắn UIPanelTween lên prefab thay vì UIPanelBase — TweenGroup tự thêm khi hide lần đầu.
 // Thêm UITweenFade / UITweenScale / ... lên các child GameObject.
 // HidePanel → TweenGroup.PlayHideAsync chờ child tweens xong → panel disable/destroy.
 ```

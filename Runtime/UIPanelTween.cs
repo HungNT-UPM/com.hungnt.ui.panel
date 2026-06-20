@@ -1,7 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HungNT.UI.Tween;
-using UnityEngine;
 
 namespace HungNT.UI.Panel
 {
@@ -13,23 +12,28 @@ namespace HungNT.UI.Panel
     /// Show: các <see cref="UITweenBase"/> con tự play qua <c>OnEnable</c> khi SetActive(true).
     /// Hide: override <see cref="UIPanelBase.Hide"/>, chờ tween xong rồi <c>HideComplete()</c>.
     /// </remarks>
-    [RequireComponent(typeof(TweenGroup))]
     public class UIPanelTween : UIPanelBase
     {
-        /// <summary>
-        /// <see cref="Tween.TweenGroup"/> điều phối hide tween con (lazy, tự lấy nếu thiếu).
-        /// </summary>
         private TweenGroup _tweenGroup;
+
+        /// <summary>
+        /// <see cref="Tween.TweenGroup"/> điều phối hide tween con — lazy, tự add nếu chưa có.
+        /// </summary>
+        private TweenGroup TweenGroup
+        {
+            get
+            {
+                if (_tweenGroup == null && !TryGetComponent(out _tweenGroup))
+                    _tweenGroup = gameObject.AddComponent<TweenGroup>();
+
+                return _tweenGroup;
+            }
+        }
 
         /// <summary>
         /// <c>true</c> khi hide tween đang chạy — ngăn gọi lồng nhau.
         /// </summary>
-        public bool IsHiding => _tweenGroup.IsHiding;
-
-        protected virtual void Awake()
-        {
-            _tweenGroup = GetComponent<TweenGroup>();
-        }
+        public bool IsHiding => _tweenGroup != null && _tweenGroup.IsHiding;
 
         /// <summary>
         /// Override: ủy thác hide tween cho <see cref="Tween.TweenGroup"/>,
@@ -52,7 +56,7 @@ namespace HungNT.UI.Panel
                 return;
             }
 
-            await _tweenGroup.PlayHideAsync(token);
+            await TweenGroup.PlayHideAsync(token);
             HideComplete();
         }
     }
