@@ -304,7 +304,7 @@ GameObject:
   - component: {fileID: 4908514672209549221}
   - component: {fileID: 71902163776958177}
   m_Layer: 0
-  m_Name: UIPanelManager
+  m_Name: PanelManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

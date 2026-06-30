@@ -1,71 +1,109 @@
+using System;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
 namespace HungNT.UI.Panel
 {
     /// <summary>
-    /// Base class cho mọi UI Panel. Kế thừa <see cref="UIViewBase"/>.
-    /// Hide lifecycle: <c>Hide()</c> → <c>OnHide()</c> → <c>HideComplete()</c> (disable hoặc destroy);
-    /// subclass có animation override <c>Hide()</c> để delay <c>HideComplete()</c>.
+    /// Base cho panel dòng chuẩn (kế thừa UIViewBase). Quản lý layer, hành vi cache (chỉnh trong prefab),
+    /// và disable/destroy khi hide. Subclass có animation override Hide để delay OnCompleteHide.
     /// </summary>
-    public class UIPanelBase : UIViewBase
+    public class UIPanelBase : UIViewBase, IUIPanel
     {
-        private bool _canCache;
-        private LayerType _layerType;
+        /// <summary>
+        /// True: cache để reuse | False: destroy sau khi hide complete
+        /// </summary>
+        [SerializeField] [GUIColor("cyan")]
+        private bool _canCache = false;
+
+        private PanelOptions _options;
 
         /// <summary>
-        /// <c>true</c> nếu panel được disable (cache) sau Hide thay vì destroy.
+        /// Phát khi panel hiện xong. Cho presenter/handler ngoài tự đăng ký lúc panel xuất hiện (vd MVP).
+        /// </summary>
+        public event Action OnShown;
+
+        /// <summary>
+        /// Phát khi panel ẩn xong. Manager dùng để dọn cache; presenter/handler ngoài dùng để hủy đăng ký.
+        /// </summary>
+        public event Action OnHidden;
+
+        /// <summary>
+        /// true thì disable (cache) sau khi hide; false thì destroy. Đặt trong prefab.
         /// </summary>
         public bool CanCache => _canCache;
 
-        /// <summary>Layer mà panel đang nằm trong Canvas.</summary>
-        public LayerType LayerType => _layerType;
-
         /// <summary>
-        /// Gọi một lần bởi <see cref="UIPanelManager"/> sau khi Instantiate.
-        /// Không gọi thủ công.
+        /// Layer Canvas mà panel nằm trong.
         /// </summary>
-        internal void Setup(PanelOptions options)
+        public LayerType LayerType
         {
-            _canCache = options.CanCache;
-            _layerType = options.Layer;
+            get { return _options.Layer; }
         }
 
         /// <summary>
-        /// Hiển thị panel. Override để thêm animation; nhớ gọi <see cref="OnShow"/> trong override.
+        /// Gọi một lần bởi UIPanelManager sau khi Instantiate, trước Show. Không gọi thủ công.
+        /// </summary>
+        public void Setup(PanelOptions options)
+        {
+            _options = options;
+        }
+
+        /// <summary>
+        /// Hiển thị panel. Override để thêm animation; nhớ gọi OnBeginShow rồi OnCompleteShow.
         /// </summary>
         public virtual void Show()
         {
-            OnShow();
+            OnBeginShow();
+            OnCompleteShow();
         }
 
         /// <summary>
-        /// Ẩn panel. Default: gọi <see cref="OnHide"/> rồi <see cref="HideComplete"/> ngay lập tức.<br/>
-        /// Override để delay <see cref="HideComplete"/> — ví dụ: chờ tween animation xong.
+        /// Ẩn panel. Mặc định gọi OnBeginHide rồi OnCompleteHide ngay. Override để delay (vd chờ tween).
         /// </summary>
         public virtual void Hide()
         {
-            OnHide();
-            HideComplete();
+            OnBeginHide();
+            OnCompleteHide();
         }
 
         /// <summary>
-        /// Kết thúc quá trình hide: disable (CanCache) hoặc destroy (!CanCache).<br/>
-        /// Gọi sau khi animation kết thúc — hoặc ngay lập tức nếu không có animation.
+        /// Callback khi panel bắt đầu show. Override để thêm logic.
         /// </summary>
-        protected void HideComplete()
+        protected virtual void OnBeginShow()
         {
-            if (_canCache)
+        }
+
+        /// <summary>
+        /// Kết thúc show: phát OnShown.
+        /// </summary>
+        protected void OnCompleteShow()
+        {
+            OnShown?.Invoke();
+        }
+
+        /// <summary>
+        /// Callback khi panel bắt đầu hide. Override để thêm logic.
+        /// </summary>
+        protected virtual void OnBeginHide()
+        {
+        }
+
+        /// <summary>
+        /// Kết thúc hide: disable nếu CanCache, ngược lại destroy; rồi phát OnHidden.
+        /// </summary>
+        protected void OnCompleteHide()
+        {
+            if (CanCache)
+            {
                 gameObject.SetActive(false);
+            }
             else
+            {
                 Destroy(gameObject);
-        }
+            }
 
-        /// <summary>Callback khi panel bắt đầu show. Override để thêm logic tùy chỉnh.</summary>
-        protected virtual void OnShow()
-        {
-        }
-
-        /// <summary>Callback khi panel bắt đầu hide. Override để thêm logic tùy chỉnh.</summary>
-        protected virtual void OnHide()
-        {
+            OnHidden?.Invoke();
         }
     }
 }

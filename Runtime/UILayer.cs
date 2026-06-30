@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HungNT.UI.Panel
 {
     /// <summary>
-    /// Đại diện một layer trong Canvas. Được <see cref="UIPanelManager"/> tự động tìm hoặc tạo khi cần.
+    /// Đại diện một layer trong Canvas. UIPanelManager tự tìm hoặc tạo khi cần.
     /// </summary>
     [RequireComponent(typeof(Canvas), typeof(GraphicRaycaster))]
     public class UILayer : UIViewBase
@@ -12,9 +12,17 @@ namespace HungNT.UI.Panel
         [SerializeField]
         private LayerType _layerType;
 
-        public LayerType LayerType => _layerType;
+        public LayerType LayerType
+        {
+            get { return _layerType; }
+        }
 
-        private void OnValidate()
+        private void Reset()
+        {
+            gameObject.name = $"Layer {_layerType}";
+        }
+
+        private void Awake()
         {
             gameObject.name = $"Layer {_layerType}";
         }
@@ -22,8 +30,7 @@ namespace HungNT.UI.Panel
         internal void Init(LayerType layerType)
         {
             _layerType = layerType;
-            
-            // override sorting order
+
             var canvas = GetComponent<Canvas>();
             canvas.overrideSorting = true;
             canvas.sortingOrder = (int)layerType;
