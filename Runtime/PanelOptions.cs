@@ -24,5 +24,11 @@ namespace HungNT.UI.Panel
             Path = path;
             Layer = LayerType.Dynamic;
         }
+
+        public PanelOptions(string path, LayerType layer)
+        {
+            Path = path;
+            Layer = layer;
+        }
     }
 }
