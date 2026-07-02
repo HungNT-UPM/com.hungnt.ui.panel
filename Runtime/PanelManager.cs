@@ -10,7 +10,7 @@ namespace HungNT.UI.Panel
     /// Quản lý lifecycle UI Panel: nạp prefab qua IUIPrefabLoader (default Resources, có thể inject
     /// bundle loader), phân layer, cache theo Type, show/hide và inject data trước khi panel active.
     /// </summary>
-    public class PanelManager : MonoSingletonScene<PanelManager>
+    public partial class PanelManager : MonoSingletonScene<PanelManager>
     {
         [SerializeField] [InlineButton(nameof(SetupCanvas), "Setup")]
         private Canvas _canvasRoot;
@@ -224,6 +224,33 @@ namespace HungNT.UI.Panel
 
             panel.Show();
             return panel;
+        }
+
+        // ── Attach (HUD tĩnh, không lifecycle) ──────────────────
+
+        /// <summary>
+        /// Gắn 1 UI thường (không phải IUIPanel) làm con cố định của một layer — dùng cho HUD nền
+        /// game luôn hiển thị (top bar, joystick, radar...) trước đây nằm trong Main UI Root cũ.
+        /// Không cache/show/hide theo Type; caller tự quản lý vòng đời như trước.
+        /// </summary>
+        public void Attach(Component ui, LayerType layer = LayerType.Static)
+        {
+            if (ui == null)
+            {
+                this.LogWarning("Attach nhận ui null.");
+                return;
+            }
+
+            var target = GetOrCreateLayer(layer);
+            ui.transform.SetParent(target.RectTransform, false);
+        }
+
+        /// <summary>
+        /// RectTransform gốc của một layer (tạo nếu chưa có) — cho code legacy cần reparent/duyệt con.
+        /// </summary>
+        public RectTransform GetLayerRoot(LayerType layer)
+        {
+            return GetOrCreateLayer(layer).RectTransform;
         }
 
         // ── Hide / Query ────────────────────────────────────────
