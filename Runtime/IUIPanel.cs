@@ -14,6 +14,12 @@ namespace HungNT.UI.Panel
         bool CanCache { get; }
 
         /// <summary>
+        /// true từ lúc Hide bắt đầu cho tới lần Show kế tiếp — chặn Hide chạy lặp (OnHidden bắn đôi,
+        /// đệ quy qua subscriber) và giúp manager nhận biết panel đang tween-out để không reuse.
+        /// </summary>
+        bool IsHidden { get; }
+
+        /// <summary>
         /// Layer Canvas mà panel nằm trong.
         /// </summary>
         LayerType LayerType { get; }
