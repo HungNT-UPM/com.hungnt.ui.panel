@@ -21,6 +21,10 @@ namespace HungNT.UI.Panel
         [ShowInInspector] [ReadOnly]
         private Dictionary<Type, IUIPanel> _panels = new();
 
+        // Type đang spawn async dở — để lượt gọi sau chờ instance này thay vì sinh bản thứ hai
+        // (spawn async kéo dài nhiều frame, panel chưa vào _panels nên TryGetCached không thấy).
+        private readonly HashSet<Type> _spawning = new();
+
         private IUIPrefabLoader _loader;
         private RectTransform _staging;
 
@@ -135,18 +139,35 @@ namespace HungNT.UI.Panel
         }
 
         /// <summary>
-        /// Bản async của ShowPanel — nạp prefab qua IUIPrefabLoader.LoadAsync.
+        /// Bản async của ShowPanel — nạp prefab qua LoadAsync và instantiate bằng InstantiateAsync,
+        /// prefab nặng không block main thread; panel show khi đã dựng xong.
         /// </summary>
         public async UniTask<T> ShowPanelAsync<T>(PanelOptions options) where T : MonoBehaviour, IUIPanel
         {
+            await WaitPendingSpawn<T>();
+
             if (TryGetCached(out T cached))
             {
                 Reactivate(cached);
                 return cached;
             }
 
-            var prefab = await Loader.LoadAsync(options.Path);
-            return Spawn<T>(prefab, options, null);
+            _spawning.Add(typeof(T));
+            try
+            {
+                var prefab = await Loader.LoadAsync(options.Path);
+                if (this == null)
+                {
+                    // Manager bị destroy (đổi scene) trong lúc load — bỏ spawn, không đụng Staging nữa.
+                    return null;
+                }
+
+                return await SpawnAsync<T>(prefab, options, null);
+            }
+            finally
+            {
+                _spawning.Remove(typeof(T));
+            }
         }
 
         /// <summary>
@@ -154,6 +175,8 @@ namespace HungNT.UI.Panel
         /// </summary>
         public async UniTask<T> ShowPanelAsync<T, TData>(PanelOptions options, TData data) where T : MonoBehaviour, IUIPanel
         {
+            await WaitPendingSpawn<T>();
+
             if (TryGetCached(out T cached))
             {
                 if (cached is IPanelData<TData> pd)
@@ -165,15 +188,41 @@ namespace HungNT.UI.Panel
                 return cached;
             }
 
-            var prefab = await Loader.LoadAsync(options.Path);
-            return Spawn<T>(prefab, options, panel =>
+            _spawning.Add(typeof(T));
+            try
+            {
+                var prefab = await Loader.LoadAsync(options.Path);
+                if (this == null)
                 {
-                    if (panel is IPanelData<TData> pd)
-                    {
-                        pd.SetData(data);
-                    }
+                    // Manager bị destroy (đổi scene) trong lúc load — bỏ spawn, không đụng Staging nữa.
+                    return null;
                 }
-            );
+
+                return await SpawnAsync<T>(prefab, options, panel =>
+                    {
+                        if (panel is IPanelData<TData> pd)
+                        {
+                            pd.SetData(data);
+                        }
+                    }
+                );
+            }
+            finally
+            {
+                _spawning.Remove(typeof(T));
+            }
+        }
+
+        /// <summary>
+        /// Chờ spawn async đang dở của cùng type xong (user spam mở trong lúc panel còn instantiate
+        /// nhiều frame) — để nhánh cache phía sau reuse instance đó thay vì sinh bản thứ hai.
+        /// </summary>
+        private async UniTask WaitPendingSpawn<T>()
+        {
+            while (_spawning.Contains(typeof(T)))
+            {
+                await UniTask.Yield(this.GetCancellationTokenOnDestroy());
+            }
         }
 
         /// <summary>
@@ -230,8 +279,53 @@ namespace HungNT.UI.Panel
                 return null;
             }
 
+            if (_spawning.Contains(typeof(T)))
+            {
+                this.LogWarning($"ShowPanel sync trong lúc {typeof(T).Name} đang spawn async — sẽ tạo instance trùng.");
+            }
+
             // Instantiate dưới Staging (inactive) để hoãn Awake/OnEnable cho tới khi SetData xong.
             var go = Instantiate(prefab, Staging);
+            return FinishSpawn(go, options, setData);
+        }
+
+        /// <summary>
+        /// Instantiate async: Unity chia việc clone hierarchy thành time-slice qua nhiều frame nên
+        /// prefab nặng không block main thread. Vẫn parent vào Staging inactive để giữ contract
+        /// SetData-trước-Awake như nhánh sync. Unity cũ không có InstantiateAsync thì fallback sync.
+        /// </summary>
+        private async UniTask<T> SpawnAsync<T>(GameObject prefab, PanelOptions options, Action<T> setData) where T : MonoBehaviour, IUIPanel
+        {
+            if (prefab == null)
+            {
+                this.LogError($"Loader trả null cho path '{options.Path}'.");
+                return null;
+            }
+
+#if UNITY_2023_3_OR_NEWER
+            var operation = InstantiateAsync(prefab, Staging);
+            try
+            {
+                await operation.ToUniTask(cancellationToken: this.GetCancellationTokenOnDestroy());
+            }
+            catch (OperationCanceledException)
+            {
+                // Manager bị destroy giữa chừng (đổi scene/thoát game) — hủy op để không rớt lại instance mồ côi.
+                operation.Cancel();
+                throw;
+            }
+
+            return FinishSpawn(operation.Result[0], options, setData);
+#else
+            return FinishSpawn(Instantiate(prefab, Staging), options, setData);
+#endif
+        }
+
+        /// <summary>
+        /// Phần chung sau instantiate: Setup, SetData, chuyển vào layer, activate, đăng ký cache và Show.
+        /// </summary>
+        private T FinishSpawn<T>(GameObject go, PanelOptions options, Action<T> setData) where T : MonoBehaviour, IUIPanel
+        {
             var panel = go.GetComponent<T>();
             if (panel == null)
             {
