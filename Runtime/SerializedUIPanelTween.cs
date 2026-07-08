@@ -39,11 +39,6 @@ namespace HungNT.UI.Panel
         public bool CanCache => _canCache;
 
         /// <summary>
-        /// true từ lúc Hide bắt đầu tới lần Show kế tiếp — chặn Hide lặp/đệ quy qua OnHidden.
-        /// </summary>
-        public bool IsHidden { get; protected set; }
-
-        /// <summary>
         /// Layer Canvas mà panel nằm trong.
         /// </summary>
         public LayerType LayerType => _options.Layer;
@@ -85,7 +80,6 @@ namespace HungNT.UI.Panel
         /// </summary>
         public virtual void Show()
         {
-            IsHidden = false;
             OnBeginShow();
             OnCompleteShow();
         }
@@ -95,13 +89,6 @@ namespace HungNT.UI.Panel
         /// </summary>
         public virtual void Hide()
         {
-            // Chặn Hide lặp — tránh OnHidden bắn đôi (2 đường đóng) và đệ quy qua subscriber OnHidden.
-            if (IsHidden)
-            {
-                return;
-            }
-
-            IsHidden = true;
             OnBeginHide();
             HideTweenAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }

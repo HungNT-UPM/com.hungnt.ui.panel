@@ -240,11 +240,8 @@ namespace HungNT.UI.Panel
             }
 
             var go = ((Component)existing).gameObject;
-            if (existing.IsHidden && go.activeSelf)
+            if (go.activeSelf)
             {
-                // Đã Hide nhưng GO còn active = hide-tween đang chạy. Destroy cancel luôn tween
-                // (token GetCancellationTokenOnDestroy) nên OnCompleteHide không chạy nữa;
-                // entry gỡ tay ở đây vì OnHidden sẽ không fire.
                 _panels.Remove(typeof(T));
                 Destroy(go);
                 return false;

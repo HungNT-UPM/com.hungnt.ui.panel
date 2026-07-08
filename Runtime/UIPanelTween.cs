@@ -41,13 +41,6 @@ namespace HungNT.UI.Panel
         /// </summary>
         public override void Hide()
         {
-            // Guard trùng ý base.Hide — không gọi base vì cần thay OnCompleteHide bằng nhánh tween async.
-            if (IsHidden)
-            {
-                return;
-            }
-
-            IsHidden = true;
             OnBeginHide();
             HideTweenAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
