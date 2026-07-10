@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -15,6 +16,13 @@ namespace HungNT.UI.Panel
         [SerializeField] [InlineButton(nameof(SetupCanvas), "Setup")]
         private Canvas _canvasRoot;
 
+        /// <summary>
+        /// Thời gian (giây) một panel cache nằm ẩn không dùng thì tự hủy để nhả RAM. Đặt <= 0 để tắt.
+        /// Đếm từ lúc hide complete (panel thật sự inactive), không tính SetActive(false) do tiết kiệm pin.
+        /// </summary>
+        [SerializeField] [MinValue(0)]
+        private float _cacheIdleLifetime = 60f;
+
         [ShowInInspector] [ReadOnly] [TableList]
         private Dictionary<LayerType, UILayer> _layers = new();
 
@@ -24,6 +32,9 @@ namespace HungNT.UI.Panel
         // Type đang spawn async dở — để lượt gọi sau chờ instance này thay vì sinh bản thứ hai
         // (spawn async kéo dài nhiều frame, panel chưa vào _panels nên TryGetCached không thấy).
         private readonly HashSet<Type> _spawning = new();
+
+        // Hẹn giờ tự hủy theo Type cho panel cache đang ẩn; show lại (hoặc dọn) sẽ hủy token này.
+        private readonly Dictionary<Type, CancellationTokenSource> _autoDestroy = new();
 
         private IUIPrefabLoader _loader;
         private RectTransform _staging;
@@ -242,11 +253,14 @@ namespace HungNT.UI.Panel
             var go = ((Component)existing).gameObject;
             if (go.activeSelf)
             {
+                CancelAutoDestroy(typeof(T));
                 _panels.Remove(typeof(T));
                 Destroy(go);
                 return false;
             }
 
+            // Sắp reuse & show lại → hủy hẹn giờ tự hủy cache (nếu panel đang trong thời gian chờ hủy).
+            CancelAutoDestroy(typeof(T));
             panel = (T)existing;
             return true;
         }
@@ -484,17 +498,103 @@ namespace HungNT.UI.Panel
 
             foreach (var type in dead)
             {
+                CancelAutoDestroy(type);
                 _panels.Remove(type);
             }
         }
 
         private void HandleHidden(Type type, IUIPanel panel)
         {
-            // Panel không cache đã bị Destroy ở OnCompleteHide, bỏ khỏi cache để GetPanel không trả fake-null.
-            if (!panel.CanCache && _panels.TryGetValue(type, out var current) && ReferenceEquals(current, panel))
+            // Chỉ xử lý khi panel này vẫn là bản cache hiện hành của type (tránh dọn nhầm instance đã bị thay).
+            if (!_panels.TryGetValue(type, out var current) || !ReferenceEquals(current, panel))
+            {
+                return;
+            }
+
+            if (panel.CanCache)
+            {
+                // Cache còn sống nhưng vừa hide complete (inactive) → hẹn giờ tự hủy nếu lâu không mở lại.
+                ScheduleAutoDestroy(type, panel);
+            }
+            else
+            {
+                // Panel không cache đã bị Destroy ở OnCompleteHide, bỏ khỏi cache để GetPanel không trả fake-null.
+                _panels.Remove(type);
+            }
+        }
+
+        // ── Auto-destroy panel cache khi idle (nhả RAM) ─────────
+
+        /// <summary>
+        /// Hẹn giờ tự hủy panel cache sau khi idle _cacheIdleLifetime giây. Gọi khi panel hide complete.
+        /// Đặt lại nếu type đang có hẹn giờ; bỏ qua nếu tính năng tắt (_cacheIdleLifetime <= 0).
+        /// </summary>
+        private void ScheduleAutoDestroy(Type type, IUIPanel panel)
+        {
+            if (_cacheIdleLifetime <= 0f)
+            {
+                return;
+            }
+
+            CancelAutoDestroy(type);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+            _autoDestroy[type] = cts;
+            AutoDestroyAfterIdle(type, panel, _cacheIdleLifetime, cts.Token).Forget();
+        }
+
+        /// <summary>
+        /// Hủy hẹn giờ tự hủy của một type (show lại, dọn layer, hoặc reschedule).
+        /// </summary>
+        private void CancelAutoDestroy(Type type)
+        {
+            if (_autoDestroy.TryGetValue(type, out var cts))
+            {
+                cts.Cancel();
+                cts.Dispose();
+                _autoDestroy.Remove(type);
+            }
+        }
+
+        /// <summary>
+        /// Chờ idle rồi hủy panel cache nếu vẫn ẩn — nhả RAM khi lâu không mở lại. Bị hủy token
+        /// (show lại / đổi scene) thì thoát sớm, không đụng gì. Đếm giờ theo thời gian thực (bỏ timeScale).
+        /// </summary>
+        private async UniTaskVoid AutoDestroyAfterIdle(Type type, IUIPanel panel, float seconds, CancellationToken token)
+        {
+            bool canceled = await UniTask
+                .Delay(TimeSpan.FromSeconds(seconds), ignoreTimeScale: true, cancellationToken: token)
+                .SuppressCancellationThrow();
+            if (canceled)
+            {
+                return;
+            }
+
+            _autoDestroy.Remove(type);
+
+            // Panel đã bị dọn nơi khác (ClearLayer / đổi scene) — chỉ cần bỏ entry nếu còn.
+            if (!Alive(panel))
+            {
+                if (_panels.TryGetValue(type, out var stale) && ReferenceEquals(stale, panel))
+                {
+                    _panels.Remove(type);
+                }
+
+                return;
+            }
+
+            // Đã được mở lại (không nên xảy ra vì show hủy hẹn giờ) — giữ nguyên, không hủy.
+            var go = ((Component)panel).gameObject;
+            if (go.activeSelf)
+            {
+                return;
+            }
+
+            if (_panels.TryGetValue(type, out var current) && ReferenceEquals(current, panel))
             {
                 _panels.Remove(type);
             }
+
+            Destroy(go);
         }
 
         // Unity fake-null: panel đã Destroy vẫn khác C# null, dùng Component '==' override để check thật.
