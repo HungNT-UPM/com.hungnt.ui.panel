@@ -11,7 +11,7 @@ namespace HungNT.UI.Panel
     /// Quản lý lifecycle UI Panel: nạp prefab qua IUIPrefabLoader (default Resources, có thể inject
     /// bundle loader), phân layer, cache theo Type, show/hide và inject data trước khi panel active.
     /// </summary>
-    public class PanelManager : MonoSingletonScene<PanelManager>
+    public class PanelManager : MonoSingletonScene<PanelManager>,IUIManager
     {
         [SerializeField] [InlineButton(nameof(SetupCanvas), "Setup")]
         private Canvas _canvasRoot;
