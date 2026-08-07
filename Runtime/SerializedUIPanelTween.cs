@@ -118,7 +118,7 @@ namespace HungNT.UI.Panel
         /// <summary>
         /// Kết thúc hide: disable nếu CanCache, ngược lại destroy; rồi phát OnHidden.
         /// </summary>
-        protected void OnCompleteHide()
+        protected virtual void OnCompleteHide()
         {
             if (CanCache)
             {
